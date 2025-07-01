@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatGPT IQOption Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fa;
+      color: #2c3e50;
+      text-align: center;
+      padding: 2em;
+    }
+    h1 {
+      color: #0074D9;
+      margin-bottom: 5px;
+    }
+    h2 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    #saldo {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    #pixlink {
+      font-size: 0.95em;
+      margin-bottom: 20px;
+    }
+    .controls {
+      margin-bottom: 1em;
+    }
+    input, select, button {
+      padding: 6px;
+      margin: 4px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    #comandos {
+      background: #000;
+      color: #0f0;
+      padding: 1em;
+      max-width: 800px;
+      margin: 0 auto 1.5em;
+      text-align: left;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+    table {
+      margin: 1em auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+    }
+    th, td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #ccc;
+    }
+    th {
+      background: #1f5c99;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #eef3f8;
+    }
+    .verde { color: green; }
+    .vermelho { color: red; }
+    .cinza { color: gray; }
+    #temporizador {
+      margin-top: 1em;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    #resultadoFinal {
+      font-size: 1.2em;
+      margin: 1em 0;
+    }
+    #logTentativas {
+      margin-top: 1em;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 0.95em;
+    }
+    #placarAuto {
+      margin-bottom: 10px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>ChatGPT IQOption Bot</h1>
+  <h2>EUR/USD DayTrade</h2>
+<!-- Link do histórico de apostas -->
+<a href="#" onclick="abrirHistorico()" style="display: block; margin-bottom: 20px; font-weight: bold;">📜 Histórico de Apostadores - Todas as Apostas do site</a>
+
+<!-- Janela fixa oculta com histórico -->
+<div id="janelaHistorico" style="display:none; position:fixed; top:50px; left:50%; transform:translateX(-50%); width:90%; max-width:600px; background:white; border:1px solid #ccc; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:9999; padding:1em; font-family:sans-serif;">
+  <div style="text-align:right;">
+    <button onclick="fecharHistorico()" style="background:#c00; color:white; border:none; padding:5px 10px; border-radius:4px; font-weight:bold;">Fechar</button>
+  </div>
+  <h3 style="margin-top:0;">Histórico de Apostas Simuladas</h3>
+  <ul id="listaHistorico" style="list-style:none; padding:0; max-height:300px; overflow-y:auto;"></ul>
+</div>
+
+<script>
+function gerarEmailFake() {
+  const nomes = ["joao", "maria", "lucas", "ana", "carlos", "rafa", "julia", "pedro", "lara", "felipe"];
+  const dominios = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"];
+  const nome = nomes[Math.floor(Math.random() * nomes.length)];
+  const numero = Math.floor(Math.random() * 1000);
+  const dominio = dominios[Math.floor(Math.random() * dominios.length)];
+  return `${nome}${numero}@${dominio}`;
+}
+
+function gerarEntrada() {
+  const valor = (Math.random() * 100 + 5).toFixed(2);
+  const fechamento = (parseFloat(valor) + ((Math.random() - 0.5) * 10)).toFixed(2);
+  const venceu = Math.random() > 0.5;
+  const cor = venceu ? "green" : "red";
+  const status = venceu ? "🏆 VITÓRIA" : "❌ DERROTA";
+  const agora = new Date();
+  const data = agora.toLocaleDateString();
+  return `<li style="margin-bottom:8px;">
+    <strong>${gerarEmailFake()}</strong><br>
+    💰 Entrada: R$${valor} | 🔚 Fechamento: R$${fechamento} | 📅 ${data} →
+    <span style="color:${cor}; font-weight:bold;">${status}</span>
+  </li>`;
+}
+
+function abrirHistorico() {
+  const lista = document.getElementById("listaHistorico");
+  lista.innerHTML = "";
+  for (let i = 0; i < 10; i++) {
+    lista.innerHTML += gerarEntrada();
+  }
+  document.getElementById("janelaHistorico").style.display = "block";
+}
+
+function fecharHistorico() {
+  document.getElementById("janelaHistorico").style.display = "none";
+}
+</script>
+
+
+  <p id="saldo">💰 Saldo: R$0,00</p>
+  <p id="pixlink"><a href="https://buy.stripe.com/test_bJe4gz8D8e3d3fK60FdZ600">➕ Adicionar saldo com Pix (clique aqui)</a></p>
+
+  <div id="comandos">
+    <strong>📜 Comandos disponíveis:</strong><br><br>
+    ▶️ Comprar a cada 3 velas<br>
+    ▶️ Comprar a cada 2 velas<br>
+    ▶️ Comprar a cada 1 vela<br>
+    ▶️ Comprar quando a porcentagem de velas chegar a 40%<br>
+    ▶️ Criar próprio algoritmo<br>
+  </div>
+
+  <div class="controls">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="senha" placeholder="Senha" />
+    <select id="periodo">
+      <option value="100">100 velas</option>
+      <option value="50">50 velas</option>
+      <option value="10">10 velas</option>
+    </select>
+    <button onclick="executarCompra()">🛒 Comprar ≥ 40%</button>
+    <label>
+      <input type="checkbox" id="modoAuto" onchange="alternarAuto()"> Automático
+    </label>
+  </div>
+
+  <div id="placarAuto"></div>
+  <div id="temporizador"></div>
+  <p id="estatisticas">Carregando estatísticas...</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>⏱ Horário</th>
+        <th>💶 Preço</th>
+        <th>📈 Variação (%)</th>
+      </tr>
+    </thead>
+    <tbody id="historico"></tbody>
+  </table>
+
+  <div id="resultadoFinal"></div>
+  <div id="logTentativas"><strong>📜 Histórico:</strong><br /></div>
+
+  <script>
+    const socket = new WebSocket(`http://34.29.195.234:3000/`);
+    const tabela = document.getElementById('historico');
+    const estatisticas = document.getElementById('estatisticas');
+    const tempoDiv = document.getElementById('temporizador');
+    const resultadoDiv = document.getElementById('resultadoFinal');
+    const logTentativas = document.getElementById('logTentativas');
+    const placarAuto = document.getElementById('placarAuto');
+
+    let ultimas = [];
+    let intervalo = null;
+    let contagem = 30;
+    let modoAuto = false;
+    let comprado = false;
+    let direcaoCompra = null;
+    let precoEntrada = 0;
+    let precoAtual = 0;
+    let vitorias = 0;
+    let derrotas = 0;
+
+    socket.onmessage = ({ data }) => {
+      const { historico, stats } = JSON.parse(data);
+      ultimas = historico;
+      precoAtual = parseFloat(historico[historico.length - 1]?.preco || 0);
+
+      estatisticas.innerHTML = `
+        📊 Últimas ${historico.length} velas →
+        🔺 <span class="verde">${stats.pctSubida}%</span> subiram |
+        🔻 <span class="vermelho">${stats.pctQueda}%</span> caíram |
+        ➖ <span class="cinza">${stats.pctEstavel}%</span> estáveis
+      `;
+
+      tabela.innerHTML = historico.slice().reverse().map(item => {
+        const cor = item.variacao > 0 ? 'verde' : item.variacao < 0 ? 'vermelho' : 'cinza';
+        return `<tr><td>${item.horario}</td><td>$${item.preco}</td><td class="${cor}">${item.variacao}%</td></tr>`;
+      }).join('');
+
+      if (modoAuto && !comprado) verificarCondicaoDeCompra();
+      if (comprado) atualizarDisplay();
+    };
+
+    function executarCompra() {
+      const periodo = parseInt(document.getElementById('periodo').value);
+      const velasSelecionadas = ultimas.slice(-periodo);
+      const subidas = velasSelecionadas.filter(v => v.variacao > 0).length;
+      const taxa = (subidas / velasSelecionadas.length) * 100;
+      alert(taxa >= 40
+        ? `✅ Compra permitida com ${taxa.toFixed(2)}% de subidas`
+        : `❌ Apenas ${taxa.toFixed(2)}% de subidas`);
+    }
+
+    function alternarAuto() {
+      modoAuto = document.getElementById('modoAuto').checked;
+      tempoDiv.textContent = '';
+      resultadoDiv.textContent = '';
+      atualizarPlacar();
+      if (!modoAuto && intervalo) clearInterval(intervalo);
+    }
+
+    function verificarCondicaoDeCompra() {
+      const periodo = parseInt(document.getElementById('periodo').value);
+      const velas = ultimas.slice(-periodo);
+      const subidas = velas.filter(v => v.variacao > 0).length;
+      const quedas = velas.filter(v => v.variacao < 0).length;
+      const taxaSubida = (subidas / velas.length) * 100;
+      const taxaQueda = (quedas / velas.length) * 100;
+
+      if ((taxaSubida >= 40 || taxaQueda >= 40) && !intervalo) {
+        direcaoCompra = taxaSubida >= 40 ? "subida" : "queda";
+        precoEntrada = precoAtual;
+        iniciarContagem();
+      }
+    }
+
+    function iniciarContagem() {
+      comprado = true;
+      contagem = 30;
+      resultadoDiv.textContent = '';
+      tempoDiv.style.color = 'green';
+      tempoDiv.innerHTML = `🕒 Iniciando operação de <strong>${direcaoCompra}</strong> a $${precoEntrada.toFixed(6)}`;
+
+      intervalo = setInterval(() => {
+        contagem--;
+        tempoDiv.style.color = contagem <= 5 ? 'red' : 'green';
+                  tempoDiv.innerHTML = `
+            🕒 Aguardando 30s (${contagem}s restantes)<br>
+            💰 Entrada: $${precoEntrada.toFixed(6)} | 📉 Atual: $${precoAtual.toFixed(6)}
+          `;
+
+          if (contagem <= 0) finalizarOperacao();
+        }, 1000);
+      }
+
+      function finalizarOperacao() {
+        clearInterval(intervalo);
+        intervalo = null;
+        comprado = false;
+
+        const ganho =
+          (direcaoCompra === "subida" && precoAtual > precoEntrada) ||
+          (direcaoCompra === "queda" && precoAtual < precoEntrada);
+
+        if (ganho) {
+          vitorias++;
+          resultadoDiv.innerHTML = `✅ <span class="verde">Você ganhou!</span>`;
+        } else {
+          derrotas++;
+          resultadoDiv.innerHTML = `❌ <span class="vermelho">Você perdeu!</span>`;
+        }
+
+        atualizarPlacar();
+
+        const horario = new Date().toLocaleTimeString();
+        const log = `${horario} — Compra: ${direcaoCompra} | Entrada: $${precoEntrada.toFixed(6)} | Fechamento: $${precoAtual.toFixed(6)} → <strong class="${ganho ? 'verde' : 'vermelho'}">${ganho ? 'GANHOU' : 'PERDEU'}</strong>`;
+        logTentativas.innerHTML += `<br>${log}`;
+      }
+
+      function atualizarDisplay() {
+        tempoDiv.innerHTML = `
+          🕒 Aguardando 30s (${contagem}s restantes)<br>
+          💰 Entrada: $${precoEntrada.toFixed(6)} | 📉 Atual: $${precoAtual.toFixed(6)}
+        `;
+      }
+
+      function atualizarPlacar() {
+        if (modoAuto) {
+          placarAuto.innerHTML = `
+            🎯 Placar Automático: <span class="verde">Vitórias: ${vitorias}</span> | 
+            <span class="vermelho">Derrotas: ${derrotas}</span><br>
+            <span style="font-size: 0.95em; color: gray;">
+              (O bot iniciará quando 100 velas chegar em 40%)
+            </span>
+          `;
+        } else {
+          placarAuto.innerHTML = '';
+        }
+      }
+  </script>
+</body>
+</html>
